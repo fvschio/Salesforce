@@ -1,0 +1,58 @@
+public class IntegrationSalesforceCallOut {
+    public static Token requestToken()
+    {
+        Integration_Salesforce__mdt mdt = Integration_Salesforce__mdt.getInstance('Token');
+        HttpRequest req = new HttpRequest();
+	    req.setEndpoint(mdt.endpoint__c 
+                        + 'grant_type=' + mdt.grant_type__c 
+                        + '&client_id=' + mdt.client_id__c 
+                        + '&client_secret=' + mdt.client_secret__c 
+                        + '&username=' + mdt.username__c
+                        + '&password=' + mdt.password__c
+                       );
+        req.setMethod('POST');
+        
+        Http http = new Http();
+        HTTPResponse res = http.send(req);
+        
+        Token token = (Token)JSON.deserialize(res.getBody(), Token.class);
+        
+        
+        return token;        
+    }
+    
+    @future (callout=true)
+    public static void sendAccount(String accId)
+    {
+        Account acc = [SELECT Id, Name, IdSalesforce__c FROM Account WHERE Id = : accId LIMIT 1];
+        Conta conta = new Conta();
+        conta.name = acc.name;
+        
+        String payload = JSON.serialize(conta);
+        System.debug(payload);
+        Token token = requestToken();
+        HttpRequest req = new HttpRequest();
+	req.setEndpoint(token.instance_url + '/services/data/v55.0/sobjects/Account/IdSchioOrg__c/' + acc.IdSalesforce__c);
+        req.setHeader('Authorization', token.token_type + ' ' + token.access_token);
+        req.setHeader('Content-Type', 'application/json');
+        req.setBody(payload);
+        System.debug(token.token_type + ' ' + token.access_token);
+        req.setMethod('PATCH');
+        Http http = new Http();
+        HTTPResponse res = http.send(req);
+        System.debug(res.getBody());
+        
+    }
+    
+    public class Conta{
+        String name;
+    }
+    
+    public class Token{
+        String access_token;
+        String instance_url;
+        String id;
+        String token_type;
+        String issued_at;
+        String signature;
+    }

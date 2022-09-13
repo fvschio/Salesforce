@@ -1,0 +1,5 @@
+trigger AccountTrigger on Account (after insert, after update) {
+    
+    IntegrationSalesforceCallOut.sendAccount(Trigger.new.get(0).Id);
+
+}
