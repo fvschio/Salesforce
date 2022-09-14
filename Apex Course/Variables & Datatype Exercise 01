@@ -1,0 +1,20 @@
+//Variables & Datatype Exercise 
+
+// post for apex category
+List<string> apexPosts = new List<String>{'Demystifying Apex Collections', 'Datatypes and variables in Apex'};
+    
+// post for lightning category 
+List<string> lightningPosts = new List<String>{'Events in Aura framework', 'Developing reusable components'};
+
+    
+//map to store the categories and post lists
+Map<String, List<String>> allPosts = new Map<String, List<String>>();
+
+// insert apex posts
+allPosts.put('Apex', apexPosts);
+
+// insert lightning posts
+allPosts.put('Lightning', lightningPosts);
+
+// printing all posts along categories
+System.debug(allPosts);

@@ -1,0 +1,43 @@
+/*
+https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/langCon_apex_collections_lists.htm
+
+https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_list.htm
+
+
+Add with new List
+List<Integer> rollNumbers = new List<Integer>{11008890, 11008100, 11007230};
+
+Add in List */
+List<Integer> rollNumbers = new List<Integer>();
+System.debug(rollNumbers);
+
+rollNumbers.add(89897767);
+rollNumbers.add(89897333);
+rollNumbers.add(89897762);
+
+System.debug(rollNumbers);
+
+// get item on index 1
+Integer rollnum = rollNumbers.get(1);
+System.debug(rollnum);
+
+// add item on index 3
+rollNumbers.add(2, 99999929);
+System.debug(rollNumbers);
+
+// get the list size
+System.debug(rollNumbers.size());
+
+// remove the item on index 2
+rollNumbers.remove(2);
+System.debug(rollNumbers);
+System.debug(rollNumbers.size());
+
+// update item on index 1
+rollNumbers.set(1, 4444422);
+System.debug(rollNumbers);
+
+// clear the list
+rollNumbers.clear();
+System.debug(rollNumbers);
+System.debug(rollNumbers.size());

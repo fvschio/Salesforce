@@ -1,0 +1,26 @@
+String greeting = 'Hello World';
+System.debug(greeting);
+
+Boolean amISchio = true;
+System.debug(amISchio);
+
+Integer rollNumber = 11008890;
+System.debug(rollNumber);
+
+Long worldPopulation = 7000000000L;
+System.debug(worldPopulation);
+
+Decimal myCgpa = 8.5;
+System.debug(myCgpa);
+
+Double lightSpeed = 93000000/186000;
+System.debug(lightSpeed);
+
+Date tDay = Date.newInstance(2022, 9, 13);
+System.debug(tDay);
+
+Time currentTime = Time.newInstance(3, 25, 0, 0);
+System.debug(currentTime);
+
+DateTime currentDateTime = DateTime.newInstance(2022, 9, 13, 3, 25, 0);
+System.debug(currentDateTime);

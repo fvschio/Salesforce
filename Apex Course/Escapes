@@ -1,0 +1,2 @@
+String str = 'My team\'s name is \'Crows\'. \n We play on SF';
+System.debug(str);

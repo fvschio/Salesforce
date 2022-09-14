@@ -1,0 +1,42 @@
+//https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_methods_system_map.htm
+
+Map<Integer, String> class2022 = new Map<Integer, String>();
+
+// add new student/item
+
+class2022.put(11008890, 'Schio');
+
+System.debug(class2022);
+
+class2022.put(11008891, 'Alcaponi');
+class2022.put(11008892, 'Rick');
+class2022.put(11008893, 'Bill');
+
+System.debug(class2022);
+
+class2022.put(11008894, 'Bill');
+System.debug(class2022);
+
+//update/override value
+class2022.put(11008894, 'Hyuga');
+System.debug(class2022);
+
+// get a value
+System.debug(class2022.get(11008892));
+
+// remove an item from map
+class2022.remove(11008893);
+System.debug(class2022);
+
+//get all the keys
+Set<Integer> rollNumber = class2022.keySet();
+System.debug(rollNumber);
+
+// get all the values
+List<String> students = class2022.values();
+System.debug(students);
+
+// check if map has the key
+System.debug(class2022.containsKey(11008892));
+System.debug(class2022.containsKey(11008893));
+
