@@ -1,0 +1,12 @@
+//Examples Constant Variables
+
+final Decimal PI;
+System.debug(PI);
+
+// initialize variable
+PI = 2.14159;
+System.debug(PI);
+
+// update variable - Don't work
+PI = 3.14159;
+System.debug(PI);

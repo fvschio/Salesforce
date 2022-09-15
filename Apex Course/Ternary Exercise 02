@@ -1,0 +1,31 @@
+/*Pizza Rates:
+1 slice - $8/slice
+2-3 slice - $7/slice
+>3 slice - $6/slice
+
+Ross ordered - 3 slices
+Chandler ordered - 1 slice
+Joey ordered - 4 slices */
+
+
+final Integer PRICE1 = 8;
+final Integer PRICE23 = 7;
+final Integer PRICE4 = 6;
+
+Integer rossOrder = 3;
+Integer chandlerOrder = 1;
+Integer joeyOrder = 4;
+
+Integer numberOfSlices = 1;
+
+// Calculate Ross's amount
+Integer rossTotal = numberOfSlices == 1 ? PRICE1*numberOfSlices : rossOrder <= 3 ? numberOfSlices*PRICE23 : numberOfSlices*PRICE4;
+System.Debug('Ross has to pay '+rossTOtal 'dólares.');
+
+// Calculate Chandler's amount
+Integer chandlerTotal = numberOfSlices == 1 ? PRICE1*numberOfSlices : numberOfSlices <= 3 ? numberOfSlices*PRICE23 : numberOfSlices*PRICE4;
+System.Debug('Chandler has to pay '+chandlerTOtal 'dólares.');
+
+// Calculate Joey's amount
+Integer joeyTotal = joeyOrder == 1 ? PRICE1*numberOfSlices : numberOfSlices <= 3 ? numberOfSlices*PRICE23 : numberOfSlices*PRICE4;
+System.Debug('Joey has to pay '+joeyTOtal 'dólares.');
