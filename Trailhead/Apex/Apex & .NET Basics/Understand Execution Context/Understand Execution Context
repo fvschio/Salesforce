@@ -1,0 +1,18 @@
+Write an Apex trigger that modifies Account fields before inserting records.
+Write an Apex trigger that fires before records are inserted and ensures that the ShippingState field has the same value as the BillingState field.
+Create an Apex class that contains a public static method:
+Name: AccountTriggerHandler
+Method name: CreateAccounts
+The method must accept a List of Account objects
+For each Account record, before saving, ensure that the ShippingState field has the same value as the BillingState field
+Create an Apex Trigger:
+Name: AccountTrigger
+sObject: Account
+Fires: before records are inserted
+Your trigger must call the AccountTriggerHandler.CreateAccounts() method with the collection of new records
+Use the isBefore and isInsert trigger context variables
+Create a test class:
+Name: AccountTriggerTest
+Your test class must insert 200 Account records with a BillingState of CA
+After the insert, test to ensure that all 200 records have a ShippingState of CA
+Before verifying this challenge, run your test class at least once using the Developer Console Run All feature
