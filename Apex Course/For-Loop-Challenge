@@ -1,0 +1,22 @@
+/*
+*
+*	*
+*	*	*
+*	*	*	*
+*	*	*	*	*
+*/    
+Integer n = 20;
+
+for(Integer x = 0;x < n;x++){
+    String pattern = '';
+    for(Integer y = 0;y <= x;y++){        
+      
+    pattern = pattern + '* ';
+    //patter += '* ';
+    }
+    System.debug(pattern); 
+}
+
+
+    
+  
