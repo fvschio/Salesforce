@@ -1,0 +1,26 @@
+/*
+> A year is a leap year, if it is evenly divisible by 4.
+> Except if that is year is also evenly divisible by 100.
+> Unless the year is also evenly divisible by 400.
+*/
+
+Integer year = 1100;
+    
+do {
+    //System.debug('Processing year '+year);
+    //loop code block
+    	// check if year is leap year or not
+    if (Math.mod(year,4) == 0){
+	   	if (Math.mod(year,100) == 0){          	
+    		if (Math.mod(year,400) == 0){
+    			System.debug(year + ' É um ano bissexto');
+    		}
+        }else{
+            System.debug(year + ' É um ano bissexto');
+        }
+	}
+    // increment year value
+    year++;
+} while(year <= 2000); //year value must be less than or equal to 2000
+//System.debug('Year value after loop '+year);
+    

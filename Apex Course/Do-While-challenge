@@ -1,0 +1,21 @@
+Integer numero = 0;
+    
+do {
+    if ((Math.mod(numero,3) == 0) && (Math.mod(numero,5) == 0)){
+    	System.debug('fizzbuzz,');
+    }
+    
+    else if (Math.mod(numero,3) == 0){
+    	System.debug('fizz,');
+ 	}    
+    
+	else if (Math.mod(numero,5) == 0){ 
+    	System.debug('buzz,');     		
+    }
+    
+    else{
+        System.debug(numero +' ,');
+        }
+	    
+    numero++;
+} while(numero <= 100); 
