@@ -1,0 +1,24 @@
+@isTest
+public class FitnessTest {
+    
+    @isTest
+    public static void calculateBMITest(){
+        Decimal peso = 70.00;
+        Decimal altura = 1.70;
+        Decimal resultado;
+        
+        resultado = Fitness.calculateBMI(peso, altura);
+        System.assertEquals(24.22, resultado.setScale(2)); 
+    }
+    
+    @isTest
+    public static void calculatePaceTest(){
+        Decimal minutos = 30;
+        Decimal distancia = 3000;
+        Decimal pace;
+        
+        pace = Fitness.calculatePace(distancia, minutos);
+        System.assertEquals(6000, pace);
+    }
+    
+}
