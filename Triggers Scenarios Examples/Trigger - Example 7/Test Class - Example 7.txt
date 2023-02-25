@@ -1,0 +1,70 @@
+//Test Class:
+//Scenario 1- Test method when BillingCity for Account is changed and verify that Contact MailingCity should be updated with Account BillingCity.
+//Scenario 2- Test method when BillingCity for Account is NOT changed and verify that Contact MailingCity should not get updated with Account BillingCity.
+
+@isTest
+private class AccountTriggerTest {
+    // Data method to insert 1 account and 1 contact related to the account
+    @testSetup
+    static void dataSetup() {
+        Account acc = new Account(Name='TestAccount1', BillingCity='Seattle');
+        insert acc;
+        Contact con = new Contact(LastName='TestContact', AccountId=acc.Id, MailingCity='Seattle');
+        insert con;
+    }
+    
+    // Test method when BillingCity for Account is changed
+    // Verify that Contact MailingCity should be updated with Account BillingCity
+    @isTest
+    static void afterUpdateTest_billingCityChanged() {
+        Account account = [Select Id, BillingCity From Account LIMIT 1];
+        Contact contact = [Select Id, MailingCity From Contact Where AccountId = :account.Id];
+        
+        // Initial Assertions
+        // Assert that Account BillingCity and Contact MailingCity are same
+        // and Contact MailingCity is 'Seattle'
+        System.assertEquals(account.BillingCity, contact.MailingCity, 'Account BillingCity and Contact MailingCity should be same.');
+        System.assertEquals('Seattle', contact.MailingCity, 'Contact MailingCity should be Seattle.');
+        
+        // Update Account BillingCity to 'London' and assert that Contact MailingCity should also get updated to 'London'
+        Test.startTest();
+            account.BillingCity = 'London';
+            update account;
+        Test.stopTest();
+
+        System.debug(account.BillingCity);        
+        // Get updated Contact
+        Contact newContact = [Select Id, MailingCity From Contact Where AccountId = :account.Id];
+        // Assert that Account BillingCity and Contact MailingCity are same
+        // and Contact MailingCity is now 'London'
+        System.assertEquals(account.BillingCity, newContact.MailingCity, 'Account BillingCity and Contact MailingCity should be same.');
+        System.assertEquals('London', newContact.MailingCity, 'Contact MailingCity should be London.');
+    }
+    
+    // Test method when BillingCity for Account is NOT changed
+    // Verify that Contact MailingCity should not get updated with Account BillingCity
+    @isTest
+    static void afterUpdateTest_billingCityNotChanged() {
+        Account account = [Select Id, BillingCity From Account LIMIT 1];
+        Contact contact = [Select Id, MailingCity From Contact Where AccountId = :account.Id]; 
+        
+        // Update Contact MailingCity to some city which should not be same as Account BillingCity
+        contact.MailingCity = 'London';
+        update contact;
+        
+        // Assert that Account BillingCity and Contact MailingCity should not be same
+        System.assertNotEquals(account.BillingCity, [Select Id, MailingCity From Contact].MailingCity, 
+                               'Account BillingCity and Contact MailingCity should not be same.');
+        
+        // Now, update Account but keep BillingCity same,
+        // and assert that Contact MailingCity should not be udpated with Account BillingCity
+        Test.startTest();
+            account.BillingCountry = 'USA';
+            update account;
+        Test.stopTest();
+        
+        Contact newContact = [Select Id, MailingCity From Contact Where AccountId = :account.Id];
+        System.assertNotEquals(account.BillingCity, newContact.MailingCity, 
+                               'Account BillingCity and Contact MailingCity should not be same.');
+    }
+}

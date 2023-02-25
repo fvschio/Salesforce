@@ -1,0 +1,74 @@
+//We will create an account and a contact (keeping the owner same). Then update the account owner to some new user and verify that the contact owner should also get updated to new user.
+
+@isTest
+private class AccountTriggerTest {
+    // Create test data in 'testSetup'
+    @testSetup
+    static void testData() {
+        // Create instance of a standard user
+        Profile standardProfile = [Select Id, Name From Profile Where Name='Standard User'];
+        User standardUser = new User(Alias = 'standt', Email='standarduser@testclasses.com', 
+            EmailEncodingKey='UTF-8', LastName='TestUser', LanguageLocaleKey='en_US', 
+            LocaleSidKey='en_US', ProfileId = standardProfile.Id, 
+            TimeZoneSidKey='America/Los_Angeles', UserName='standarduser@testclasses.com');
+        
+        // Create Account and Contact using run as the above user.
+        System.runAs(standardUser) {
+            Account acc = new Account(Name='TestAccount');
+            insert acc;
+            
+            Contact con = new Contact(LastName='TestContact', AccountId=acc.Id);
+            insert con;
+        }
+    }
+    
+    // Positive test case
+    // 1. Update Account's Owner
+    // 2. Verify Contact Owner should get updated.
+    @isTest
+    static void accountTrigger_afterUpdateTest_positive() {
+        // Get the account and contact.
+        Account acc = [Select Id, OwnerId From Account Where Name = 'TestAccount' LIMIT 1];
+        Contact con = [Select Id, OwnerId From Contact Where Name = 'TestContact' LIMIT 1];
+        
+        // Assert owners of account and contact are not same as the current owenr
+        System.assertNotEquals(System.UserInfo.getUserId(), acc.OwnerId, 'Owner should not be same');
+        System.assertNotEquals(System.UserInfo.getUserId(), con.OwnerId, 'Owner should not be same');
+        
+        // Update the account owner
+        Test.startTest();
+            acc.OwnerId = System.UserInfo.getUserId();
+            update acc;
+        Test.stopTest();
+        
+        // Verify the contact should be updated to the current owner.
+        Contact updatedCon = [Select Id, OwnerId From Contact Where Name = 'TestContact' LIMIT 1];
+        System.assertEquals(System.UserInfo.getUserId(), updatedCon.OwnerId, 'Contact Owner should get updated.');
+    }
+    
+    // Negative Test case
+    // 1. Update any field other than the Account Owner.
+    // 2. Verify Contact Owner should not get updated.
+    @isTest
+    static void accountTrigger_afterUpdateTest_negative() {
+        Account acc = [Select Id, OwnerId From Account Where Name = 'TestAccount' LIMIT 1];
+        Contact con = [Select Id, OwnerId From Contact Where Name = 'TestContact' LIMIT 1];
+        
+        // Change the contact's Owner
+        con.OwnerId = System.UserInfo.getUserId();
+        update con;
+        
+        // Verify that account and contact Owners should not be same.
+        System.assertNotEquals(con.OwnerId, acc.OwnerId, 'Account and Contact Owners should not be same.');
+        
+        // Now update the Account but keep the Owner same. Contact Owner should not get updated to Account Owner
+        // and both should remain different.
+        Test.startTest();
+            acc.Type = 'Industry';
+            update acc;
+        Test.stopTest();
+        
+        Contact updatedCon = [Select Id, OwnerId From Contact Where Name = 'TestContact' LIMIT 1];
+        System.assertNotEquals(updatedCon.OwnerId, acc.OwnerId, 'Account and Contact Owners should not be same.');
+    }
+}

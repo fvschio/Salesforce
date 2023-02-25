@@ -1,0 +1,31 @@
+//Write a trigger, if the owner of an account is changed then the owner for the related contacts should also be updated.
+(this can happen if a user leaves a company, then it is required to update the owner field for all the accounts and contacts he/she owns)
+
+// Since we need to perform updation on Contact instead of Account, so we are going to use 'After Update'
+trigger AccountTrigger on Account (after update) {
+    if(Trigger.isUpdate && Trigger.isAfter) {
+        List<Id> accountIds = new List<Id>();
+        
+        // To handle bulk operations, traverse through each account which is updated
+        // verify if the Owner is changed or not then add its ID in 'accountIds'.
+        for(Account account : Trigger.new) {
+            if(account.OwnerId != Trigger.oldMap.get(account.Id).OwnerId) {
+                accountIds.add(account.Id);
+            }
+        }
+        
+        // check if at least 1 account was updated with new owner
+        if(accountIds.size() != 0) {
+            // Get list of all the contacts whose account's owner was changed.
+            List<Contact> contacts = [Select Id, OwnerId, AccountId 
+                                      From Contact 
+                                      Where AccountId IN :accountIds];
+            
+            // Get the Owner Id value from newMap of Accounts and update the contact's Owner
+            for(Contact con : contacts) {
+                con.OwnerId = Trigger.newMap.get(con.AccountId).OwnerId;
+            }
+            update contacts;
+        }
+    }
+}

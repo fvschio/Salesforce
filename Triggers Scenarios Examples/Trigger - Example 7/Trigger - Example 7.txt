@@ -1,0 +1,29 @@
+//Write a trigger:
+//Whenever the BillingCity of any Account is updated, update MailingCity of all the Contacts related to the account.
+//Note: This should work only if the account is updated with BillingCity.
+
+trigger AccountTrigger on Account (after update) {
+    // Run this code only after Account is updated
+    if(Trigger.isAfter && Trigger.isUpdate) {
+        // Get all the accounts for which BillingCity was changed
+        Set<Id> accountIds = new Set<Id>();
+        for(Account acc : Trigger.new) {
+            // Compare the new BillingCity to the old BillingCity for the same account
+            if(acc.BillingCity != Trigger.oldMap.get(acc.Id).BillingCity) {
+                accountIds.add(acc.Id);
+            }
+        }
+        
+        // Get the list of all the Contacts for above accounts
+        List<Contact> listOfContacts = [Select Id, MailingCity, AccountId From Contact Where AccountId IN :accountIds];
+        // Iterate through each Contact and udpate the MailingCity to its Account's BillingCity
+        for(Contact contact : listOfContacts) {
+            contact.MailingCity = Trigger.newMap.get(contact.AccountId).BillingCity;
+        }
+        
+        // Update contacts if there is any record in the list
+        if(!listOfContacts.isEmpty()) {
+            update listOfContacts;
+        }
+    }
+}

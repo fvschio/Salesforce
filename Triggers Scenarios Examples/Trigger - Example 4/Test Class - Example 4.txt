@@ -1,0 +1,55 @@
+//Positive Scenario – We will insert an account and a contact related to the account then try to delete the account and verify that account should not be deleted.
+//Negative Scenario – We will insert only an account and no contact then try to delete the account and verify that account should be deleted.
+
+@isTest
+private class AccountTriggerTest {
+    // Data method which insert two accounts
+    // first account with 1 associated contact
+    // second account with no associated contact
+    @testSetup
+    static void dataSetup() {
+        Account acc1 = new Account(Name='TestAccount1');
+        insert acc1;
+        Contact con = new Contact(LastName='TestContact', AccountId=acc1.Id);
+        insert con;
+        
+        Account acc2 = new Account(Name='TestAccount2');
+        insert acc2;
+    }
+    
+    // Test method to check if there is any associated contact with an account then the account should not be deleted.
+    @isTest
+    static void beforeDeleteTest_accountWithContact() {
+        List<Account> insertedAccount = [Select Id From Account Where Name='TestAccount1'];
+        System.assertEquals(1, insertedAccount.size(), 'List should have only 1 account.');
+        
+        Test.startTest();
+            try {
+                delete insertedAccount;
+            }
+            catch(DMLException e) {
+                System.assert(e.getMessage().contains('Account with associated Contact(s) can not be deleted'),
+                             'Account with associated contact should not be deleted.');
+                System.assertEquals(1, [Select Id From Account Where Name='TestAccount1'].size(), 
+                                        'Account with associated contact should not be deleted.');
+            }
+        Test.stopTest();
+    }
+    
+    // Test method to check if there is no associated contact with an account then the account can be deleted.
+    @isTest
+    static void beforeDeleteTest_accountWithoutContact() {
+        List<Account> insertedAccount2 = [Select Id From Account Where Name='TestAccount2'];
+        System.assertEquals(1, insertedAccount2.size(), 'List should have only 1 account.');
+        
+        Test.startTest();
+            try {
+                delete insertedAccount2;
+            }
+            catch(DMLException e) {
+                System.assertEquals(0, [Select Id From Account Where Name='TestAccount1'].size(), 
+                                        'Account without associated contact can be deleted.');
+            }
+        Test.stopTest();
+    }
+}

@@ -1,0 +1,24 @@
+//We will insert an account and then verify if the contact for that account has been created or not.
+@isTest
+private class AccountTriggerTest {
+    @isTest
+    static void accountTrigger_afterInsertTest() {
+        // Create an instance of Account
+        Account account = new Account(Name=‘TestAccount1’, Type=‘Prospect’);
+        
+        // Perform test
+        Test.startTest();
+            insert account;
+        Test.stopTest();
+        
+        // Fetch the account that we have inserted above.
+        Account insertedAccount = [Select Id, Name From Account LIMIT 1];
+        
+        // Fetch the Contact for the above account and assert that a contact should be created
+        // also we are verifying the Account Name
+        List<Contact> insertedContacts = [Select Id, Account.Name From Contact];
+        System.assertEquals(1, insertedContacts.size(), ‘Only 1 Contact should present’);
+        System.assertEquals(insertedAccount.Name, insertedContacts[0].Account.Name, 
+                            ‘Account Name does not match’);
+    }
+}

@@ -1,0 +1,215 @@
+//Test Class:
+//Scenario 1- Verify that when an active user’s profile is changed to System Administrator then GroupMember record is created for the public group Admins.
+//Scenario 2- Verify that when profile is changed to some profile other than the System Administrator, then GroupMember record is deleted for the public group Admin.
+//Scenario 3- Verify that when an inactive user with profile System Administrator is made active, then a GroupMember record is created for the public group Admins for the user
+//Scenario 4- Verify that when an active user with profile System Administrator is made inactive, then a GroupMember record should be deleted for the public group Admins for the user
+
+@isTest
+public class TestUserUtil {
+    public static User createUser(String fName, String lName, String alias, String username, Profile profile) {
+        User usr = new User(LastName = lName,
+                            FirstName = fName,
+                            Alias = alias,
+                            Email = fName + '.' + lName + '@apexstepbystep.com',
+                            Username = username,
+                            ProfileId = profile.id,
+                            TimeZoneSidKey = 'GMT',
+                            LanguageLocaleKey = 'en_US',
+                            EmailEncodingKey = 'UTF-8',
+                            LocaleSidKey = 'en_US'
+                           );
+        return usr;
+    }
+}
+
+
+@isTest
+private class UserTriggerTest {
+    // Verify that when user having System Administrator profile is created, the user is also added to the public group Admin.
+    @isTest
+    static void testUserInsertion_valid() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+        // GroupMembers before insertion
+        List<GroupMember> membersBefore = [SELECT Id From GroupMember Where GroupId = :adminGroup.Id];
+        
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', adminProfile);
+        
+        Test.startTest();
+        insert usr;
+        Test.stopTest();
+        
+        // Assert that members after insertion should be exactly 1 greater than before
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size() + 1, membersAfter.size(), 'User is not added to group Admins.');
+        
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(true, userIdsSet.contains(usr.Id), 'GroupMember should be present for the inserted user.');
+    }
+    
+    // Verify that when user having other than the System Administrator profile is created, the user should not be added to the public group Admin.
+    @isTest
+    static void testUserInsertion_invalid() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+        // GroupMembers before insertion
+        List<GroupMember> membersBefore = [SELECT Id From GroupMember Where GroupId = :adminGroup.Id];
+        
+        Profile standardProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', standardProfile);
+        
+        Test.startTest();
+        insert usr;
+        Test.stopTest();
+        
+        // Assert that members after insertion should be same as before
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size(), membersAfter.size(), 'Group Members count is not same.');
+        
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(false, userIdsSet.contains(usr.Id), 'GroupMember should not be present for the inserted user.');
+    }
+    
+    // Verify that when an active user's profile is changed to System Administrator then GroupMember record is created for the public group Admins
+    @isTest
+    static void test_updatePublicGroupUsers_profileAdmin() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+
+        Profile standardProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', standardProfile);
+        insert usr;
+        
+        // GroupMembers in the adminGroup before updation. Assert that user should not be a member of the public group.
+        List<GroupMember> membersBefore = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        Set<Id> groupMembersIdsBefore = new Set<Id>();
+        for(GroupMember member : membersBefore) {
+            groupMembersIdsBefore.add(member.UserOrGroupId);
+        }
+        System.assertEquals(false, groupMembersIdsBefore.contains(usr.Id), 'GroupMember should not be present for the inserted user.');
+        
+        // Update profile of the inserted user to System Administrator
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        Test.startTest();
+        usr.ProfileId = adminProfile.Id;
+        update usr;
+        Test.stopTest();
+        
+        // Assert that after updating the profile to System Administrator, a new group member for public group Admins should be created
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size() + 1, membersAfter.size(), 'Group Members count is same.');
+        
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(true, userIdsSet.contains(usr.Id), 'GroupMember should be present for the inserted user.');
+    }
+    
+    // Verify that when profile is changed to some profile other than the System Administrator, then GroupMember record is deleted for the public group Admin.
+    @isTest
+    static void test_updatePublicGroupUsers_profileNotAdmin() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', adminProfile);
+        insert usr;
+
+        // GroupMembers in the adminGroup before updation. Assert that user should be a member of the public group.
+        List<GroupMember> membersBefore = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        Set<Id> groupMembersIdsBefore = new Set<Id>();
+        for(GroupMember member : membersBefore) {
+            groupMembersIdsBefore.add(member.UserOrGroupId);
+        }
+        System.assertEquals(true, groupMembersIdsBefore.contains(usr.Id), 'GroupMember should be present for the inserted user.');
+        
+        // Update profile of the inserted user to Standard User
+        Profile standardProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+        Test.startTest();
+        usr.ProfileId = standardProfile.Id;
+        update usr;
+        Test.stopTest();
+        
+        // Assert that after updating the profile to Standard User, the group member for public group Admins should be deleted
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size() - 1, membersAfter.size(), 'Group Members count is same.');
+        
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(false, userIdsSet.contains(usr.Id), 'GroupMember is not deleted for the user.');
+    }
+    
+    // Verify that when an inactive user with profile System Administrator is made active, then a GroupMember record is created for the public group Admins for the user
+    @isTest
+    static void test_updatePublicGroupUsers_active() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', adminProfile);
+        usr.IsActive = false;
+        insert usr;
+        
+        // GroupMembers in the adminGroup before updation
+        List<GroupMember> membersBefore = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        Set<Id> groupMembersIdsBefore = new Set<Id>();
+        for(GroupMember member : membersBefore) {
+            groupMembersIdsBefore.add(member.UserOrGroupId);
+        }
+        System.assertEquals(false, groupMembersIdsBefore.contains(usr.Id), 'GroupMember should not be present for the inserted user.');
+        
+        // Make the user active by updating IsActive checkbox true
+        Test.startTest();
+        usr.IsActive = true;
+        update usr;
+        Test.stopTest();
+        
+        // Assert that the group member for public group Admins should be created for the user
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size() + 1, membersAfter.size(), 'Group Members count is same.');
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(true, userIdsSet.contains(usr.Id), 'GroupMember should be created for the inserted user.');
+    }
+    
+    // Verify that when an active user with profile System Administrator is made inactive, then a GroupMember record should be deleted for the public group Admins for the user
+    @isTest
+    static void test_updatePublicGroupUsers_inActive() {
+        Group adminGroup = [SELECT Id FROM Group WHERE DeveloperName = 'Admins' AND Type = 'Regular' LIMIT 1];
+
+        Profile adminProfile = [SELECT Id FROM Profile WHERE Name = 'System Administrator' LIMIT 1];
+        User usr = TestUserUtil.createUser('Test', 'User', 'tusr', 'test.user444@apexstepbystep.com', adminProfile);
+        insert usr;
+        
+        // GroupMembers in the adminGroup before updation.
+        List<GroupMember> membersBefore = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        Set<Id> groupMembersIdsBefore = new Set<Id>();
+        for(GroupMember member : membersBefore) {
+            groupMembersIdsBefore.add(member.UserOrGroupId);
+        }
+        System.assertEquals(true, groupMembersIdsBefore.contains(usr.Id), 'GroupMember should be present for the inserted user.');
+        
+        // Make the user active by updating IsActive checkbox true
+        Test.startTest();
+        usr.IsActive = false;
+        update usr;
+        Test.stopTest();
+        
+        // Assert that the group member for public group Admins should be deleted for the user
+        List<GroupMember> membersAfter = [SELECT Id, UserOrGroupId From GroupMember Where GroupId = :adminGroup.Id];
+        System.assertEquals(membersBefore.size() - 1, membersAfter.size(), 'Group Members count is same.');
+        
+        Set<Id> userIdsSet = new Set<Id>();
+        for(GroupMember member : membersAfter) {
+            userIdsSet.add(member.UserOrGroupId);
+        }
+        System.assertEquals(false, userIdsSet.contains(usr.Id), 'GroupMember should be deleted for the user.');
+    }
+}

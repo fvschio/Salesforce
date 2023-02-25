@@ -1,0 +1,109 @@
+//Scenario 1- We will try to delete a closed opportunity with user having profile standard user and verify that the user should not be able to delete it. 
+//Scenario 2- We will try to delete a closed opportunity with user having profile System admin and verify that the user should be able to delete it. 
+//Scenario 3- We will verify that once an opportunity is closed won, email invocation count is increased.
+
+@isTest
+private class OpportunityTriggerTest {
+    
+    // Test Data setup method
+    @testSetup
+    static void dataSetup() {
+        // Insert an account
+        Account acc = new Account(Name='TestAccount');
+        insert acc;
+        
+        Opportunity opp1 = new Opportunity(Name='AdminOpp', AccountId=acc.Id, StageName = 'Prospecting', CloseDate = System.today());
+        insert opp1;
+        
+        // Insert an opportunity related to the account as a standard user so that owner would be different for this opportunity
+        Profile standUserProfile = [Select Id From Profile Where Name = 'Standard User'];
+        User standardUser = new User(Alias = 'standt', Email='standarduser@testclasses.com', 
+            EmailEncodingKey='UTF-8', LastName='TestUser', LanguageLocaleKey='en_US', 
+            LocaleSidKey='en_US', ProfileId = standUserProfile.Id, 
+            TimeZoneSidKey='America/Los_Angeles', UserName='standarduser@testclasses.com');
+        System.runAs(standardUser) {
+            Opportunity opp2 = new Opportunity(Name='StandOpp', AccountId=acc.Id, StageName = 'Prospecting', CloseDate = System.today());
+            insert opp2;           
+        }
+
+    }
+    
+    // Test once opportunity is closed, only admin should be able to delete it.
+    // First we will try to delete using standard user, in this case the user should not be able to delete it.
+    // Then we will try to delete using admin, user should be able to delete the opportunity.
+    @isTest
+    static void test_beforeDelete_standUser() {
+        Opportunity opp = [Select Id, Name From Opportunity Where Name = 'StandOpp' LIMIT 1];
+        opp.StageName = 'Closed Won';
+        update opp;
+        
+        // Perform the deletion using Standard User
+        // and assert that error is thrown and opportunity still exists in the org
+        User standUser = [Select Id From User Where Email = 'standarduser@testclasses.com'];
+        System.runAs(standUser) {
+            try {
+                delete opp;
+            }
+            catch(DMLException e) {
+                System.assert(e.getMessage().contains('You do not have necessary permissions to delete Closed opportunities'), 
+                             'Exception was not thrown');
+                System.assertEquals(1, [Select Id, Name From Opportunity Where Name = 'StandOpp' LIMIT 1].size(), 
+                                    'Opportunity count is not correct.');
+            }
+        }
+    }
+    
+    @isTest
+    static void test_beforeDelete_admin() {
+        Opportunity opp = [Select Id, Name From Opportunity Where Name = 'StandOpp' LIMIT 1];
+        opp.StageName = 'Closed Won';
+        update opp;
+        
+        // Perform the deletion using admin and assert that opportunity should be deleted
+        Test.startTest();
+            delete opp;
+        Test.stopTest();
+        System.assertEquals(0, [Select Id, Name From Opportunity Where Name = 'StandOpp' LIMIT 1].size(), 
+                            'Opportunity was not deleted.');
+    }
+    
+    // Test method to verify that email is sent to account and opportunity owners when opportunity is Closed Won
+    @isTest
+    static void test_afterUpdate_closedWonOpp() {
+        Account acc = [Select Id, OwnerId From Account Where Name = 'TestAccount'];
+        List<Opportunity> opportunities = [Select Id, OwnerId, StageName From Opportunity];
+        
+        for(Opportunity opp : opportunities) {
+            System.assert(opp.StageName != 'Closed Won', 'Opportunity should not be closed won already.');
+        }
+
+        // If email is sent, then method Limits.getEmailInvocations() should be updated
+        Test.startTest();
+            for(Opportunity opp : opportunities) {
+                opp.StageName = 'Closed Won';
+            }
+            update opportunities;
+            System.assertEquals(1, Limits.getEmailInvocations(), 'Email invocation should only be 1.');
+        Test.stopTest();
+    }
+    
+    // Test method to verify that email is not sent to account and opportunity owners when opportunity is not closed won
+    @isTest
+    static void test_afterUpdate_notClosedWonOpp() {
+        Account acc = [Select Id, OwnerId From Account Where Name = 'TestAccount'];
+        List<Opportunity> opportunities = [Select Id, OwnerId, StageName From Opportunity];
+        
+        for(Opportunity opp : opportunities) {
+            System.assert(opp.StageName != 'Closed Won', 'Opportunity should not be closed won already.');
+        }
+
+        // If email is not sent, then method Limits.getEmailInvocations() should not be updated anything
+        Test.startTest();
+            for(Opportunity opp : opportunities) {
+                opp.StageName = 'Needs Analysis';
+            }
+            update opportunities;
+            System.assertEquals(0, Limits.getEmailInvocations(), 'Email invocation should only be 0.');
+        Test.stopTest();
+    }
+}

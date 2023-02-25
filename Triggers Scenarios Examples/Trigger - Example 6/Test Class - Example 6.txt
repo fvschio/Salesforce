@@ -1,0 +1,144 @@
+//Test Class:
+//Scenario 1- Test the scenario which checks that whenever a new Contact is inserted to some account, Total_Contacts_Count__c field should be updated to value 1.
+//Scenario 2- Test the scenario when Account field on a Contact is updated from null to some value. 
+//Scenario 3- Test the scenario when Account field on a Contact is updated from some value to null.
+//Scenario 4- Test the scenario when Account field on a Contact is updated from some value to another value.
+//Scenario 5- Test the scenario when a contact record is deleted. Update related account’s field ‘Total_Contacts_Count__c’.
+
+@isTest
+private class ContactTriggerTest {
+    @testSetup
+    static void dataSetup() {
+        Account newAcc = new Account(Name='TestAccount1');
+        insert newAcc;
+        
+        Account newAcc2 = new Account(Name='TestAccount2');
+        insert newAcc2;
+    }
+    
+    // Test the scenario which checks that when we insert a new Contact to some account, 
+    // Total_Contacts_Count__c field should be updated to value 1.
+    // Here, we inserted 2 contacts, Total_Contacts_Count__c should be updated to 2.
+    @isTest
+    static void test_afterInsert() {
+        Account insertedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Name = 'TestAccount1'];
+        System.assertEquals(0, insertedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i=0; i<2; i++) {
+            contacts.add(new Contact(LastName='TestContact'+i, AccountId=insertedAcc1.Id));
+        }
+        
+        Test.startTest();
+            insert contacts;
+            Account udpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+            System.assertEquals(2, udpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        Test.stopTest();
+    }
+    
+    // Test the scenario when Account field on a Contact is updated from null to some value
+    @isTest
+    static void test_afterUpdate_scenario1() {
+        // Verify that Total_Contacts_Count__c value is 0 initially
+        Account insertedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Name = 'TestAccount1'];
+        System.assertEquals(0, insertedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        // Verify that Total_Contacts_Count__c value is 0 after the insertion of the contact
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i=0; i<2; i++) {
+            contacts.add(new Contact(LastName='TestContact'+i));
+        }
+        insert contacts;
+        Account udpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(0, udpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        // Verify that Total_Contacts_Count__c value is 1 after contact is updated with the account
+        Test.startTest();
+            for(Contact con: contacts) {
+                con.AccountId = insertedAcc1.Id;
+            }
+            update contacts;
+        Test.stopTest();
+        
+        Account newUdpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(2, newUdpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+    }
+    
+    // Test the scenario when Account field on a Contact is updated from some value to null
+    @isTest
+    static void test_afterUpdate_scenario2() {
+        Account insertedAcc1 = [Select Id From Account Where Name = 'TestAccount1'];
+        
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i=0; i<2; i++) {
+            contacts.add(new Contact(LastName='TestContact'+i, AccountId=insertedAcc1.Id));
+        }
+        insert contacts;
+        Account udpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(2, udpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        Test.startTest();
+            for(Contact con : contacts) {
+                con.AccountId = null;
+            }
+            update contacts;
+        Test.stopTest();
+        
+        Account newUdpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(0, newUdpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');        
+    }
+    
+    
+    // Test the scenario when Account field on a Contact is updated from some value to another value
+    @isTest
+    static void test_afterUpdate_scenario3() {
+        Account insertedAcc1 = [Select Id From Account Where Name = 'TestAccount1'];
+        Account insertedAcc2 = [Select Id From Account Where Name = 'TestAccount2'];
+        
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i=0; i<2; i++) {
+            contacts.add(new Contact(LastName='TestContact'+i, AccountId=insertedAcc1.Id));
+        }
+        insert contacts;
+        
+        Account udpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        Account udpatedAcc2 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc2.Id];
+        System.assertEquals(2, udpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        System.assertEquals(0, udpatedAcc2.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        Test.startTest();
+            for(Contact con : contacts) {
+                con.AccountId = udpatedAcc2.Id;
+            }
+            update contacts;
+        Test.stopTest();
+        
+        Account newUdpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        Account newUdpatedAcc2 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc2.Id];
+        System.assertEquals(0, newUdpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        System.assertEquals(2, newUdpatedAcc2.Total_Contacts_Count__c, 'Contacts count does not match.');
+    }
+
+    // Test the scenario when a contact is deleted.
+    // Update related account's field 'Total_Contacts_Count__c'
+    @isTest
+    static void test_afterDelete() {
+        Account insertedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Name = 'TestAccount1'];
+        System.assertEquals(0, insertedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i=0; i<2; i++) {
+            contacts.add(new Contact(LastName='TestContact'+i, AccountId=insertedAcc1.Id));
+        }
+        insert contacts;
+        Account udpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(2, udpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+        
+        Test.startTest();
+            delete contacts;
+        Test.stopTest();
+        
+        Account newUdpatedAcc1 = [Select Id, Total_Contacts_Count__c From Account Where Id = :insertedAcc1.Id];
+        System.assertEquals(0, newUdpatedAcc1.Total_Contacts_Count__c, 'Contacts count does not match.');
+    }    
+}
