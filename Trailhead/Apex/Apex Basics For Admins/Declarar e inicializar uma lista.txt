@@ -1,0 +1,2 @@
+//Sets the first item in the list to 'Tea'
+List<String> groceries = new List<String>{'Tea'};
