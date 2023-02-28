@@ -1,6 +1,0 @@
-//O método grow inclui dois parâmetros, height e maxHeight. 
-//Flower.grow(5, 7); passa os argumentos 5 (altura é 5 polegadas) e 7 (altura máxima é 7 polegadas) para o método grow. O método grow adiciona 2 à variável height (linha 9) e então verifica o valor da variável height. Se o valor da variável height for maior ou igual ao valor da variável maxHeight, o método grow chama o método pollinate.
-//O método pollinate não retorna nada porque seu tipo de retorno é void (nulo).
-
-Flower.wilt(4);
-Flower.grow(5, 7);
