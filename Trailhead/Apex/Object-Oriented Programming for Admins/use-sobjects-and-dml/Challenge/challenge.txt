@@ -1,0 +1,15 @@
+Usar DML para inserir vários registros
+Crie uma classe e um método que crie um número específico de novas contas e o adicione ao banco de dados.
+Crie uma classe do Apex pública chamada AccountHandler
+Adicione um método estático público à classe:
+Name: insertAccount
+Inclua um parâmetro para o número de novas contas:
+Tipo de dados: Integer
+Crie uma lista de registros de conta:
+Nome da lista: addAccounts
+Use um loop while para adicionar N novas contas à lista, em que N é o valor incrementado por 1 a cada iteração do loop:
+Name: Acme Inc N
+AccountNumber: A000n
+Dica: você fez algo assim quando criou três novos repositórios Tea Factory.
+Escreva uma instrução DML que insere todos os registros no banco de dados ao mesmo tempo
+Execute seu método insertAccount
