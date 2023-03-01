@@ -1,0 +1,18 @@
+public class PropertyUtility {
+    public static void newListedProperties(){		              
+        List<Property__c> newPropList = new List<Property__c>();
+        newPropList = [SELECT Name, Broker__r.Email__c, Days_On_Market__c FROM Property__c WHERE Days_On_Market__c <= 30];
+        for (Property__c prop : newPropList){
+       		String propEmail = 'Property Name: ' + prop.Name + ', Brokers Email: ' + prop.Broker__r.Email__c; 
+        	System.debug(propEmail); 
+        }
+    }
+}     
+
+/*Testes 
+        NAME OF PROPERTY = SELECT Broker__r.Name FROM Property__c
+        BROKER's EMAIL ADRESS = SELECT Email__c FROM Broker__c
+        DAYS ON MARKET = SELECT Days_On_Market__c FROM Property__c
+        NAME OF PROPERTY & DAYS ON MARKET = SELECT Broker__r.Name, Days_On_Market__c FROM Property__c 
+        SELECT Email__c, (SELECT Broker__r.Name, Days_On_Market__c FROM Properties__r ) FROM Broker__c
+        SELECT Name, Broker__r.Email__c, Days_On_Market__c FROM Property__c WHERE Days_On_Market__c <= 30 *
