@@ -1,0 +1,18 @@
+Create a for loop to iterate through a SOQL query
+Write a query to get the name and annual revenue of all accounts. Then use a for loop to iterate through each account, printing the name and annual revenue of each account to the debug log.
+Create a class
+Name: AccountUtility
+Create a method
+Name: viewAnnualRevenue
+Keywords: public, static, and void
+Create a list
+Name: accountsList
+Create a query and assign the results to a list
+Fields: Account Name and Annual Revenue (Hint: Use API names, not field names or labels)
+Object: Account
+Create a for loop that iterates through the query results
+Object: Account
+List name: accountsList
+For each item, concatenate the account name, followed by a colon, followed by the account’s annual revenue: <Account Name> : <Annual Revenue>
+Store the concatenated string in a variable named acctRev
+Print the acctRev variable to the debug log
