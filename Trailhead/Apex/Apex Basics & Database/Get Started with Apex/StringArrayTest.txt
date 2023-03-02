@@ -1,0 +1,35 @@
+public class StringArrayTest {
+    public static List<String> generateStringArray(Integer N){
+        List<String> newListString = new List<String>();
+        for (Integer i=0;i<N;i++){
+            newListString.add('Test ' + i);
+            System.debug(newListString[i]);
+            }        
+        return newListString;
+    }
+}
+
+/*Others Tests
+ * 01
+public class StringArrayTest {
+    public static List<String> generateStringArray(Integer num){
+        List<String> newListString = new List<String>();
+        for (Integer n=0;n<num;n++){
+            newListString.add('Test ' + n);
+            }        
+		System.debug(newListString);
+        return newListString;
+    }
+}
+
+ * 02
+public class StringArrayTest {
+    public static void generateStringArray(Integer num){
+        List<String> newListString = new List<String>();
+        for (Integer n=0;n<num;n++){
+            newListString.add('Test ' + n);
+            }        
+		System.debug(newListString);
+        }
+}
+*/
