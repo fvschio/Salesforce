@@ -1,0 +1,7 @@
+public class ContactSearch {
+    public static List<Contact> searchForContacts(String lastname, String mailing){                
+        List<Contact> Contacts = [SELECT Id, Name FROM Contact WHERE
+                                  LastName =:lastName AND MailingPostalCode =:mailing];
+        return Contacts;
+    }       
+}
