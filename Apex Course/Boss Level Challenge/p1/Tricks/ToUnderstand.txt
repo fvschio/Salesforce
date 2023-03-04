@@ -1,0 +1,15 @@
+String locationId = trace.Location_c;
+String personId = trace.Person__c;
+//check if map already has the location key
+if(! mapOfExistingRecords.containsKey(locationId)){
+	// map does not have this key
+	// Add this new item in the map using location id as key
+	// and blank Set<Id> as value
+	mapOfExistingRecords.put(locationId, new Set<Id>());
+}
+// get map item using locationId key
+Set<Id> personIds = mapOfExistingRecords.get(locationId);
+//add the person id to the set
+personIds.add(personId);
+//overwrite the existing map value
+mapOfExistingRecords.put(locationId, personIds);
